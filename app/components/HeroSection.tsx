@@ -1,4 +1,5 @@
 import MatrixAnimation from "./MatrixAnimation";
+import HeroButtons from "./HeroButtons";
 
 function HeroSection() {
   return (
@@ -15,6 +16,8 @@ function HeroSection() {
         <span>Scalable Software Systems</span>
       </div>
       <MatrixAnimation height={1920 / 4} />
+
+      <HeroButtons />
     </div>
   );
 }

@@ -60,6 +60,17 @@ canvas.matrix-canvas {
   --animate-glow: glow 6s ease-in-out infinite;
   --animate-travel: travel 3.4s linear infinite;
   --animate-travel-reverse: travel-reverse 3.4s linear infinite;
+  --animate-morph: morph 9s ease-in-out infinite;
+
+  @keyframes morph {
+    0%,
+    100% {
+      background-position: 0% 50%;
+    }
+    50% {
+      background-position: 100% 50%;
+    }
+  }
 
   @keyframes flow {
     to {
@@ -137,7 +148,8 @@ body {
   .animate-pulse-dot,
   .animate-glow,
   .animate-travel,
-  .animate-travel-reverse {
+  .animate-travel-reverse,
+  .animate-morph {
     animation: none;
   }
 }
