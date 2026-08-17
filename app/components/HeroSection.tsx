@@ -3,7 +3,7 @@ import HeroButtons from "./HeroButtons";
 
 function HeroSection() {
   return (
-    <div className="gap-6 flex flex-col h-216 justify-center">
+    <div className="gap-6 flex flex-col h-[60rem] justify-center">
       <div className="-space-y-16">
         <h1 className="text-[8rem]">Automate. Integrate.</h1>
         <h1 className="text-[8rem]">Scale. </h1>

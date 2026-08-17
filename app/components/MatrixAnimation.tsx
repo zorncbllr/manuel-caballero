@@ -158,6 +158,7 @@ const MatrixAnimation = ({
     let prevCursorX = cursorX;
     let prevCursorY = cursorY;
     let cursorStrength = 0;
+    let hasMoved = false;
 
     const handleMove = (e: MouseEvent) => {
       const rect = canvas.getBoundingClientRect();
@@ -165,6 +166,16 @@ const MatrixAnimation = ({
       targetX = (e.clientX - rect.left) * (width / rect.width);
       targetY = (e.clientY - rect.top) * (height / rect.height);
       cursorStrength = 1;
+      // First interaction: snap the smoothed cursor to the pointer instead of
+      // lerping from the off-canvas start position, otherwise the effect only
+      // catches up ~a second later.
+      if (!hasMoved) {
+        hasMoved = true;
+        cursorX = targetX;
+        cursorY = targetY;
+        prevCursorX = cursorX;
+        prevCursorY = cursorY;
+      }
     };
 
     const handleLeave = () => {
@@ -256,7 +267,7 @@ const MatrixAnimation = ({
       const spinForce = (0.35 + 0.65 * speed) * distortionIntensity * cursorStrength * locality;
       const directForce = spinForce * 0.22;
       const wakeForce = speed * speed * distortionIntensity * cursorStrength * 1.2 * locality;
-      const steps = Math.max(1, Math.round(dist / (spacing * 0.5)));
+      const steps = Math.min(Math.max(1, Math.round(dist / (spacing * 0.5))), 32);
       const radiusCells = Math.max(1, Math.round(distortionRadius / spacing));
       const invRadiusSq = 1 / (distortionRadius * distortionRadius);
       if (cursorStrength > 0.02) {
