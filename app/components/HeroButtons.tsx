@@ -60,7 +60,10 @@ function HeroButtons() {
           <span
             aria-hidden
             className="pointer-events-none absolute -inset-[1.5px] rounded-full opacity-0 transition-opacity duration-500 group-hover/btn:opacity-100"
-            style={{ boxShadow: "0 0 0 1px rgb(99 102 241 / 0.45), 0 0 28px rgb(99 102 241 / 0.3)" }}
+            style={{
+              boxShadow:
+                "0 0 0 1px rgb(99 102 241 / 0.45), 0 0 28px rgb(99 102 241 / 0.3)",
+            }}
           />
           <SpotlightGlow inverted />
           <span
@@ -70,7 +73,7 @@ function HeroButtons() {
           <span className="relative transition-all duration-700 ease-out group-hover:tracking-wide">
             Get Started
           </span>
-          <ArrowUpRight className="relative z-10 opacity-0 -translate-x-1 translate-y-1 transition-all duration-500 ease-out group-hover/btn:opacity-100 group-hover/btn:translate-x-0 group-hover/btn:translate-y-0" />
+          <ArrowUpRight />
         </Button>
       </div>
 
@@ -105,9 +108,8 @@ function HeroButtons() {
             className="animate-morph pointer-events-none absolute inset-0 opacity-90 transition-opacity duration-500 group-hover/btn:opacity-100"
           />
           <span className="relative transition-all duration-300 group-hover:tracking-wide">
-            See Projects
+            Browse Projects
           </span>
-          <Tv2 className="relative z-10 opacity-0 -translate-x-1 translate-y-1 transition-all duration-300 group-hover/btn:opacity-100 group-hover/btn:translate-x-0 group-hover/btn:translate-y-0" />
         </Button>
       </div>
     </div>
