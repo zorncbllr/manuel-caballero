@@ -3,7 +3,7 @@
 import React, { useRef, useEffect } from "react";
 
 const PALETTE = {
-  bg: "#010103",
+  bg: "#000000",
   black: "#07070B",
   charcoal: "#0F0F15",
   darkBrown: "#1E181A",
