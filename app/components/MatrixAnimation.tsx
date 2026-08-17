@@ -31,6 +31,17 @@ const GradientStops = [
 const Charcoal = hexToRgb(PALETTE.charcoal);
 const OffWhite = hexToRgb(PALETTE.offWhite);
 
+// Wave terms: (spatial-x scale, spatial-y scale, phase-rate, weight)
+const WAVES = [
+  { ax: 1, ay: 1, rate: 1, weight: 0.35 },
+  { ax: 2.3, ay: -1.3, rate: 1.7, weight: 0.25 },
+  { ax: 0.7, ay: 1.8, rate: 0.5, weight: 0.2 },
+  { ax: 3.1, ay: -2.7, rate: -1.1, weight: 0.2 },
+];
+
+// Quantized brightness levels for the per-row color lookup table.
+const LEVELS = 24;
+
 const MatrixAnimation = ({
   width = 1920,
   height = 1080,
@@ -51,18 +62,67 @@ const MatrixAnimation = ({
     canvas.width = width;
     canvas.height = height;
 
-    const generateDots = () => {
-      const dotsArr = [];
-      const effectiveSpacing = dotSpacing * scale;
-      for (let x = 0; x < width; x += effectiveSpacing) {
-        for (let y = 0; y < height; y += effectiveSpacing) {
-          dotsArr.push({ x, y });
-        }
-      }
-      return dotsArr;
-    };
+    const frequency = 0.006;
+    const effectiveSpacing = dotSpacing * scale;
+    const rectSize = dotSize * scale;
 
-    const dots = generateDots();
+    // Precompute static per-dot data: spatial wave trig + color row index.
+    // sin(a + t) = sin(a)cos(t) + cos(a)sin(t), so sin/cos of the spatial
+    // phase never needs recomputing — only 8 trig calls per frame.
+    const rowMap = new Map<number, number>();
+    const rowKeys = [];
+    const dotColumns: number[] = [];
+    for (let x = 0; x < width; x += effectiveSpacing) {
+      dotColumns.push(x);
+    }
+    for (let y = 0; y < height; y += effectiveSpacing) {
+      rowMap.set(y, rowKeys.length);
+      rowKeys.push(y);
+    }
+
+    // Build per-row color lookup tables.
+    // Level `l` represents contrastAdjusted = l / (LEVELS - 1).
+    const rowColors = rowKeys.map((y) => {
+      const mixRatio = y / height;
+      const pos = mixRatio * 2;
+      const segment = Math.min(Math.floor(pos), GradientStops.length - 2);
+      const t = pos - segment;
+      const a = GradientStops[segment];
+      const b = GradientStops[segment + 1];
+      const baseR = a.r + (b.r - a.r) * t;
+      const baseG = a.g + (b.g - a.g) * t;
+      const baseB = a.b + (b.b - a.b) * t;
+      const table = new Array(LEVELS);
+      for (let l = 0; l < LEVELS; l++) {
+        const ca = l / (LEVELS - 1);
+        const alpha = ca > 0.5 ? Math.max(0.25, ca) : Math.min(0.4, ca);
+        const dimT = 1 - ca;
+        const s1r = Charcoal.r + (baseR - Charcoal.r) * (1 - dimT * dimT);
+        const s1g = Charcoal.g + (baseG - Charcoal.g) * (1 - dimT * dimT);
+        const s1b = Charcoal.b + (baseB - Charcoal.b) * (1 - dimT * dimT);
+        const brightT = Math.max(0, ca * 1.2 - 0.2);
+        const r = Math.max(0, Math.min(255, Math.round(OffWhite.r + (s1r - OffWhite.r) * (1 - brightT))));
+        const g = Math.max(0, Math.min(255, Math.round(OffWhite.g + (s1g - OffWhite.g) * (1 - brightT))));
+        const b2 = Math.max(0, Math.min(255, Math.round(OffWhite.b + (s1b - OffWhite.b) * (1 - brightT))));
+        table[l] = `rgba(${r},${g},${b2},${alpha.toFixed(2)})`;
+      }
+      return table;
+    });
+
+    const dotRows = rowKeys.map((y) => {
+      const rowIdx = rowMap.get(y)!;
+      const nx = y * frequency;
+      return dotColumns.map((x) => {
+        const ny = x * frequency;
+        const wave = WAVES.map((w) => ({
+          s: Math.sin(nx * w.ay + ny * w.ax),
+          c: Math.cos(nx * w.ay + ny * w.ax),
+          weight: w.weight,
+        }));
+        return { x, y, rowIdx, wave, color: rowColors[rowIdx] };
+      });
+    });
+
     let animationFrameId: number;
 
     const animate = (time: number) => {
@@ -70,67 +130,33 @@ const MatrixAnimation = ({
       ctx.fillStyle = PALETTE.bg;
       ctx.fillRect(0, 0, width, height);
 
-      // 2. Define wave parameters
-      const frequency = 0.006;
+      // 2. Time-dependent trig — computed once per frame
       const waveSpeed = time * 0.001;
+      const phases = WAVES.map((w) => {
+        const t = waveSpeed * w.rate;
+        return { s: Math.sin(t), c: Math.cos(t) };
+      });
+
+      const levelScale = LEVELS - 1;
 
       // 3. Draw and animate dots
-      dots.forEach((dot) => {
-        const nx = dot.x * frequency;
-        const ny = dot.y * frequency;
-
-        // Combined-wave intensity for shimmering light
-        const waveValue =
-          Math.sin(nx + ny + waveSpeed) * 0.35 +
-          Math.sin(nx * 2.3 - ny * 1.3 + waveSpeed * 1.7) * 0.25 +
-          Math.sin(nx * 0.7 + ny * 1.8 + waveSpeed * 0.5) * 0.2 +
-          Math.sin(nx * 3.1 - ny * 2.7 - waveSpeed * 1.1) * 0.2;
-        const intensity = (waveValue + 1) / 2; // Normalize to 0-1
-        // Push toward the extremes for higher contrast
-        const contrastAdjusted = Math.max(
-          0,
-          Math.min(1, (intensity - 0.5) * contrast + 0.5),
-        );
-        const alpha =
-          contrastAdjusted > 0.5
-            ? Math.max(0.25, contrastAdjusted)
-            : Math.min(0.4, contrastAdjusted);
-
-        // Base color from 3-stop vertical gradient (cream -> light gray -> cyan)
-        const mixRatio = dot.y / height;
-        const pos = mixRatio * 2;
-        const segment = Math.floor(pos);
-        const t = pos - segment;
-        const a = GradientStops[Math.min(segment, GradientStops.length - 2)];
-        const b =
-          GradientStops[Math.min(segment + 1, GradientStops.length - 1)];
-        const base = {
-          r: a.r + (b.r - a.r) * t,
-          g: a.g + (b.g - a.g) * t,
-          b: a.b + (b.b - a.b) * t,
-        };
-
-        // Brightness pulls dim dots to charcoal, bright dots toward off-white
-        const dimT = 1 - contrastAdjusted;
-        const step1 = {
-          r: Charcoal.r + (base.r - Charcoal.r) * (1 - dimT * dimT),
-          g: Charcoal.g + (base.g - Charcoal.g) * (1 - dimT * dimT),
-          b: Charcoal.b + (base.b - Charcoal.b) * (1 - dimT * dimT),
-        };
-        const brightT = Math.max(0, contrastAdjusted * 1.2 - 0.2);
-        const red = Math.round(
-          OffWhite.r + (step1.r - OffWhite.r) * (1 - brightT),
-        );
-        const green = Math.round(
-          OffWhite.g + (step1.g - OffWhite.g) * (1 - brightT),
-        );
-        const blue = Math.round(
-          OffWhite.b + (step1.b - OffWhite.b) * (1 - brightT),
-        );
-
-        ctx.fillStyle = `rgba(${red}, ${green}, ${blue}, ${alpha})`;
-        ctx.fillRect(dot.x, dot.y, dotSize * scale, dotSize * scale);
-      });
+      for (const row of dotRows) {
+        for (const dot of row) {
+          // sin(phase + t) = sin(phase)*cos(t) + cos(phase)*sin(t)
+          let waveValue = 0;
+          for (let i = 0; i < WAVES.length; i++) {
+            const w = dot.wave[i];
+            const p = phases[i];
+            waveValue += (w.s * p.c + w.c * p.s) * w.weight;
+          }
+          // contrastAdjusted = clamp(waveValue * contrast / 2 + 0.5)
+          let ca = waveValue * (contrast * 0.5) + 0.5;
+          ca = ca < 0 ? 0 : ca > 1 ? 1 : ca;
+          const level = (ca * levelScale + 0.5) | 0;
+          ctx.fillStyle = dot.color[level];
+          ctx.fillRect(dot.x, dot.y, rectSize, rectSize);
+        }
+      }
 
       animationFrameId = requestAnimationFrame(animate);
     };
