@@ -1,30 +1,52 @@
 import Image from "next/image";
+import { ArrowUpRight } from "lucide-react";
+import TeckStack from "./TeckStack";
+import { Button } from "@/components/ui/button";
 
 function AboutSection() {
   return (
-    <div className="h-[40rem]">
-      <h1 className="text-[2.5rem]">About Me</h1>
-      <div className="w-full h-[1px] bg-primary rounded-full"></div>
+    <section className="flex items-center justify-center">
+      <div className="space-y-4">
+        <h1 className="text-xl font-medium">About</h1>
 
-      <div className="flex justify-start gap-16">
-        <Image
-          src={"/profile.png"}
-          alt="Profile Picture"
-          width={400}
-          height={400}
-        />
+        <div className="flex gap-6">
+          <div className="rounded-2xl border-3 w-80 h-100 border-white/10 overflow-hidden relative">
+            <Image
+              src="/profile.png"
+              alt="Manuel Caballero"
+              fill
+              className="object-cover"
+            />
+          </div>
+          <div>
+            <div className="w-195 space-y-4 rounded-2xl p-8 border-white/10 border-2">
+              <div className="flex justify-between">
+                <div>
+                  <p className="text-2xl font-medium">Manuel Caballero</p>
+                  <p className="text-foreground/60">AI Solutions Engineer</p>
+                </div>
 
-        <div>
-          <h1 className="text-[2rem]">Manuel Caballero</h1>
-          <p>
-            Lorem ipsum dolor sit amet consectetur, adipisicing elit. Mollitia,
-            ratione voluptatibus? Ullam, quia unde dolorem dolore, dicta quis at
-            accusantium blanditiis esse exercitationem nemo aut molestias iusto
-            dolorum sapiente modi!
-          </p>
+                <ArrowUpRight width={24} />
+              </div>
+
+              <p className="text-foreground/60 text-justify">
+                Lorem ipsum dolor sit amet, consectetur adipisicing elit.
+                Placeat enim ipsum odit numquam temporibus, nobis consectetur
+                hic nihil facere dolore dolorum nemo culpa quo fugiat tempore
+                hic nihil facere dolore dolorum nemo culpa quo fugiat tempore.
+                hic nihil facere dolore dolorum nemo.
+              </p>
+
+              <Button className={"px-6 rounded-full"}>Let's Talk</Button>
+
+              <hr />
+
+              <TeckStack />
+            </div>
+          </div>
         </div>
       </div>
-    </div>
+    </section>
   );
 }
 
