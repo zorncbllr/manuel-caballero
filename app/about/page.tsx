@@ -10,7 +10,7 @@ function AboutPage() {
         <h1 className="text-xl font-medium">About</h1>
 
         <div className="flex gap-6">
-          <div className="rounded-2xl border-3 w-80 h-100 border-white/10 overflow-hidden relative">
+          <div className="rounded-2xl border w-80 h-100 border-white/10 overflow-hidden relative">
             <Image
               src="/profile.png"
               alt="Manuel Caballero"
@@ -19,7 +19,7 @@ function AboutPage() {
             />
           </div>
           <div>
-            <div className="w-195 space-y-4 rounded-2xl p-8 border-white/10 border-2">
+            <div className="w-195 space-y-4 rounded-2xl p-8 border-white/10 border">
               <div className="flex justify-between">
                 <div>
                   <p className="text-2xl font-medium">Manuel Caballero</p>
