@@ -65,8 +65,8 @@ const TECH_STACK = [
 
 function TeckStack() {
   return (
-    <div>
-      <p>Tech Stack</p>
+    <div className="space-y-2">
+      <p className="font-medium">Tech Stack</p>
       <div className="flex flex-wrap gap-2">
         {TECH_STACK.map((src, index) => (
           <div
