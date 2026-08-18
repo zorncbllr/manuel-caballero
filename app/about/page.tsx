@@ -1,9 +1,9 @@
 import Image from "next/image";
 import { ArrowUpRight } from "lucide-react";
-import TeckStack from "./TeckStack";
 import { Button } from "@/components/ui/button";
+import TeckStack from "../components/TeckStack";
 
-function AboutSection() {
+function AboutPage() {
   return (
     <section className="flex items-center justify-center">
       <div className="space-y-4">
@@ -50,4 +50,4 @@ function AboutSection() {
   );
 }
 
-export default AboutSection;
+export default AboutPage;

@@ -3,30 +3,30 @@ import Link from "next/link";
 
 function AppHeader() {
   return (
-    <div className="flex items-center justify-between py-6">
+    <div className="flex items-center justify-between py-6 px-40 sticky top-0">
       <Image src={"/logo.png"} alt="Logo" width={36} height={36} />
 
       <div className="flex gap-12 text-sm text-foreground/60">
         <Link
-          href={"#"}
+          href={"/"}
           className="hover:text-foreground transition-all ease-in-out"
         >
           Home
         </Link>
         <Link
-          href={"#"}
+          href={"/about"}
           className="hover:text-foreground transition-all ease-in-out"
         >
           About
         </Link>
         <Link
-          href={"#"}
+          href={"/projects"}
           className="hover:text-foreground transition-all ease-in-out"
         >
           Projects
         </Link>
         <Link
-          href={"#"}
+          href={"/contact"}
           className="hover:text-foreground transition-all ease-in-out"
         >
           Contact
