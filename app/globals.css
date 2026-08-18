@@ -61,6 +61,32 @@ canvas.matrix-canvas {
   --animate-travel: travel 3.4s linear infinite;
   --animate-travel-reverse: travel-reverse 3.4s linear infinite;
   --animate-morph: morph 9s ease-in-out infinite;
+  --animate-hero-in: hero-in 0.8s cubic-bezier(0.16, 1, 0.3, 1) both;
+  --animate-hero-in-btn: hero-in-btn 0.8s cubic-bezier(0.16, 1, 0.3, 1) both;
+
+  @keyframes hero-in {
+    from {
+      opacity: 0;
+      transform: translateY(1.5rem);
+      filter: blur(8px);
+    }
+    to {
+      opacity: 1;
+      transform: none;
+      filter: blur(0);
+    }
+  }
+
+  @keyframes hero-in-btn {
+    from {
+      opacity: 0;
+      transform: translateY(1.5rem);
+    }
+    to {
+      opacity: 1;
+      transform: none;
+    }
+  }
 
   @keyframes morph {
     0%,
@@ -149,7 +175,9 @@ body {
   .animate-glow,
   .animate-travel,
   .animate-travel-reverse,
-  .animate-morph {
+  .animate-morph,
+  .animate-hero-in,
+  .animate-hero-in-btn {
     animation: none;
   }
 }
