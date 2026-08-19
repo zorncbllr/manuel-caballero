@@ -24,23 +24,29 @@ function HeroSection() {
 
       <div className="-space-y-16">
         <h1 className="animate-hero-in text-[8rem]">Automate. Integrate.</h1>
-        <h1 className="animate-hero-in [animation-delay:150ms] text-[8rem]">Scale.</h1>
+        <h1 className="animate-hero-in [animation-delay:150ms] text-[8rem]">
+          Scale.
+        </h1>
       </div>
       <div className="-mt-6 flex items-center gap-12 text-xl">
-        <span className="animate-hero-in [animation-delay:450ms]">AI Solutions</span>
+        <span className="animate-hero-in [animation-delay:450ms]">
+          AI Solutions
+        </span>
         <div className="p-1 bg-foreground rounded-full"></div>
-        <span className="animate-hero-in [animation-delay:550ms]">Workflow Automations</span>
+        <span className="animate-hero-in [animation-delay:550ms]">
+          Workflow Automations
+        </span>
         <div className="p-1 bg-foreground rounded-full"></div>
-        <span className="animate-hero-in [animation-delay:650ms]">Scalable Software Systems</span>
+        <span className="animate-hero-in [animation-delay:650ms]">
+          Scalable Software Systems
+        </span>
       </div>
       <div className="relative animate-hero-in [animation-delay:800ms]">
         <MatrixAnimation height={1920 / 5.6} />
-      </div>
-
-      <div className="flex items-center justify-between w-full">
-        <HeroButtons />
         <StatsCards />
       </div>
+
+      <HeroButtons />
     </div>
   );
 }
