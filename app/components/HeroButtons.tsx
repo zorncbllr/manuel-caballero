@@ -30,7 +30,7 @@ function SpotlightGlow({ inverted = false }: { inverted?: boolean }) {
 function HeroButtons() {
   return (
     <div className="flex items-center gap-4">
-      <div className="group animate-hero-in-btn [animation-delay:450ms] relative transition-transform duration-300 ease-out hover:-translate-y-0.5 active:scale-[0.98]">
+      <div className="group animate-hero-in-btn [animation-delay:1000ms] relative transition-transform duration-300 ease-out hover:-translate-y-0.5 active:scale-[0.98]">
         <Button
           onMouseMove={trackSpotlight}
           variant="outline"
@@ -77,7 +77,7 @@ function HeroButtons() {
         </Button>
       </div>
 
-      <div className="group animate-hero-in-btn [animation-delay:550ms] relative transition-transform duration-300 ease-out hover:scale-[1.02] active:scale-[0.98]">
+      <div className="group animate-hero-in-btn [animation-delay:1150ms] relative transition-transform duration-300 ease-out hover:scale-[1.02] active:scale-[0.98]">
         <Button
           onMouseMove={trackSpotlight}
           variant="outline"

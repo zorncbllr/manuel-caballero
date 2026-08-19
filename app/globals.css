@@ -61,8 +61,8 @@ canvas.matrix-canvas {
   --animate-travel: travel 3.4s linear infinite;
   --animate-travel-reverse: travel-reverse 3.4s linear infinite;
   --animate-morph: morph 9s ease-in-out infinite;
-  --animate-hero-in: hero-in 0.8s cubic-bezier(0.16, 1, 0.3, 1) both;
-  --animate-hero-in-btn: hero-in-btn 0.8s cubic-bezier(0.16, 1, 0.3, 1) both;
+  --animate-hero-in: hero-in 1.1s cubic-bezier(0.16, 1, 0.3, 1) both;
+  --animate-hero-in-btn: hero-in-btn 1.1s cubic-bezier(0.16, 1, 0.3, 1) both;
   --animate-radar: radar 3s ease-out infinite;
   --animate-eq: eq 1.1s ease-in-out infinite;
   --animate-receipt-scroll: receipt-scroll 7s linear infinite;
