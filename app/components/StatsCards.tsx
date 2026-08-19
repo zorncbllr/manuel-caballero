@@ -116,7 +116,7 @@ function StatsCards() {
   return (
     <section
       ref={sectionRef}
-      className="flex flex-col items-center w-[45rem] absolute bottom-1/3 right-0"
+      className="flex flex-col items-center w-[45rem] border-l-4 border-white/55 absolute bottom-1/3 right-0"
     >
       <div className="grid grid-cols-4 gap-12">
         {STATS.map((stat, index) => (

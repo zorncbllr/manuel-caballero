@@ -45,10 +45,10 @@ function SiteFooter() {
             end: "bottom bottom",
             scrub: true,
           },
-        }
+        },
       );
     },
-    { scope: rootRef }
+    { scope: rootRef },
   );
 
   function scrollToTop() {
@@ -110,7 +110,7 @@ function SiteFooter() {
       <div
         data-wordmark
         aria-hidden
-        className="pointer-events-none select-none whitespace-nowrap text-center text-[17vw] font-semibold uppercase leading-[0.72] tracking-tight text-white/[0.03]"
+        className="pointer-events-none mt-24 select-none whitespace-nowrap text-center text-[14vw] font-semibold uppercase leading-[0.72] tracking-tight text-white/[0.03]"
       >
         Caballero
       </div>

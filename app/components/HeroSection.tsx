@@ -46,6 +46,7 @@ function HeroSection() {
         <StatsCards />
       </div>
 
+      <br />
       <HeroButtons />
     </div>
   );
