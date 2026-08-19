@@ -1,13 +1,12 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import type { MouseEvent } from "react";
 
 const STATS = [
   { value: 50, suffix: "+", decimals: 0, label: "Workflows Automated" },
-  { value: 30, suffix: "+", decimals: 0, label: "AI Agents in Production" },
+  { value: 30, suffix: "+", decimals: 0, label: "Production Agents" },
   { value: 99.9, suffix: "%", decimals: 1, label: "System Uptime" },
-  { value: 6, suffix: "+", decimals: 0, label: "Years of Experience" },
+  { value: 6, suffix: "+", decimals: 0, label: "Years Experience" },
 ];
 
 function useInView(ref: React.RefObject<HTMLElement | null>) {
@@ -29,7 +28,7 @@ function useInView(ref: React.RefObject<HTMLElement | null>) {
           observer.disconnect();
         }
       },
-      { threshold: 0.35 }
+      { threshold: 0.35 },
     );
     observer.observe(el);
     return () => observer.disconnect();
@@ -64,12 +63,6 @@ function useCountUp(target: number, active: boolean, duration = 1400) {
   return value;
 }
 
-function trackSpotlight(e: MouseEvent<HTMLDivElement>) {
-  const rect = e.currentTarget.getBoundingClientRect();
-  e.currentTarget.style.setProperty("--mx", `${e.clientX - rect.left}px`);
-  e.currentTarget.style.setProperty("--my", `${e.clientY - rect.top}px`);
-}
-
 function StatCell({
   stat,
   index,
@@ -83,30 +76,22 @@ function StatCell({
 
   return (
     <div
-      onMouseMove={trackSpotlight}
-      className="group relative px-14 py-16 transition-all duration-700 ease-out"
+      className="relative text-center transition-all duration-700 ease-out"
       style={{
         transitionDelay: `${index * 110}ms`,
         opacity: inView ? 1 : 0,
         transform: inView ? "none" : "translateY(24px)",
       }}
     >
-      <span
-        aria-hidden
-        className="pointer-events-none absolute inset-0 opacity-0 transition-opacity duration-500 group-hover:opacity-100"
-        style={{
-          background:
-            "radial-gradient(320px circle at var(--mx, 50%) var(--my, 50%), rgb(255 255 255 / 0.06), transparent 70%)",
-        }}
-      />
-
-      <div className="relative">
-        <div className="text-8xl font-medium tabular-nums leading-none text-white">
+      <div>
+        <div className="text-4xl font-medium tabular-nums leading-none text-white">
           {value.toFixed(stat.decimals)}
           {stat.suffix}
         </div>
-        <div className="mt-5 text-xs font-medium uppercase tracking-[0.3em] text-white/40 transition-colors duration-300 group-hover:text-white/70">
-          {stat.label}
+        <div className="mt-5 text-[10px] font-medium uppercase tracking-[0.3em] text-white">
+          {stat.label.split(" ").map((label) => (
+            <p key={label}>{label}</p>
+          ))}
         </div>
       </div>
     </div>
@@ -118,17 +103,15 @@ function StatsCards() {
   const inView = useInView(sectionRef);
 
   return (
-    <section ref={sectionRef} className="flex flex-col gap-10">
-      <div className="flex items-center gap-4">
-        <span className="text-xs font-medium uppercase tracking-[0.3em] text-white/40">
-          Impact, quantified
-        </span>
-        <div className="h-px flex-1 bg-white/10" />
-      </div>
-
-      <div className="grid grid-cols-4 divide-x divide-white/10 border-y border-white/10">
+    <section ref={sectionRef} className="flex flex-col items-center w-fit">
+      <div className="grid grid-cols-4 gap-12">
         {STATS.map((stat, index) => (
-          <StatCell key={stat.label} stat={stat} index={index} inView={inView} />
+          <StatCell
+            key={stat.label}
+            stat={stat}
+            index={index}
+            inView={inView}
+          />
         ))}
       </div>
     </section>

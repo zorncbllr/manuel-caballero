@@ -51,6 +51,7 @@ const MatrixAnimation = ({
   scale = 1,
   distortionIntensity = 3.5,
   distortionRadius = 32,
+  edgeFade = 160,
 }) => {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
 
@@ -405,6 +406,17 @@ const MatrixAnimation = ({
         }
       }
 
+      // 9. Fade the left and right edges so dots dissolve into the background.
+      if (edgeFade > 0) {
+        const grad = ctx.createLinearGradient(0, 0, width, 0);
+        grad.addColorStop(0, "rgba(0,0,0,1)");
+        grad.addColorStop(Math.min(1, edgeFade / width), "rgba(0,0,0,0)");
+        grad.addColorStop(Math.max(0, 1 - edgeFade / width), "rgba(0,0,0,0)");
+        grad.addColorStop(1, "rgba(0,0,0,1)");
+        ctx.fillStyle = grad;
+        ctx.fillRect(0, 0, width, height);
+      }
+
       animationFrameId = requestAnimationFrame(animate);
     };
 
@@ -415,7 +427,7 @@ const MatrixAnimation = ({
       canvas.removeEventListener("mousemove", handleMove);
       canvas.removeEventListener("mouseleave", handleLeave);
     };
-  }, [width, height, dotSpacing, dotSize, contrast, scale, distortionIntensity, distortionRadius]);
+  }, [width, height, dotSpacing, dotSize, contrast, scale, distortionIntensity, distortionRadius, edgeFade]);
 
   return (
     <canvas
