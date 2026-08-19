@@ -1,7 +1,6 @@
 import { MotionConfig } from "motion/react";
 import HeroSection from "./components/HeroSection";
 import ServicesSection from "./components/ServicesSection";
-import OutcomesSection from "./components/OutcomesSection";
 import ProcessSection from "./components/ProcessSection";
 import ProjectsSection from "./components/ProjectsSection";
 import CTASection from "./components/CTASection";
@@ -16,7 +15,6 @@ function HomePage() {
 
         <div className="mt-40 space-y-40">
           <ServicesSection />
-          <OutcomesSection />
           <ProcessSection />
           <ProjectsSection />
           <CTASection />

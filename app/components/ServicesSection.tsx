@@ -71,10 +71,10 @@ function ServicesSection() {
             end: "bottom 70%",
             scrub: true,
           },
-        }
+        },
       );
     },
-    { scope: sectionRef }
+    { scope: sectionRef },
   );
 
   return (
@@ -116,29 +116,29 @@ function ServicesSection() {
                 0{index + 1}
               </span>
 
-            <h3 className="col-span-6 flex items-center gap-5 text-4xl font-medium tracking-tight transition-transform duration-500 group-hover:translate-x-2 md:text-5xl">
-              {service.title}
-              <ArrowUpRight className="size-7 -translate-x-3 opacity-0 transition-all duration-500 group-hover:translate-x-0 group-hover:opacity-100" />
-            </h3>
+              <h3 className="col-span-6 flex items-center gap-5 text-4xl font-medium tracking-tight transition-transform duration-500 group-hover:translate-x-2 md:text-5xl">
+                {service.title}
+                <ArrowUpRight className="size-7 -translate-x-3 opacity-0 transition-all duration-500 group-hover:translate-x-0 group-hover:opacity-100" />
+              </h3>
 
-            <div className="col-span-5 flex flex-col items-start gap-6">
-              <p className="max-w-md text-sm leading-relaxed text-white/45">
-                {service.blurb}
-              </p>
+              <div className="col-span-5 flex flex-col items-start gap-6">
+                <p className="max-w-md text-sm leading-relaxed text-white/45">
+                  {service.blurb}
+                </p>
 
-              <div className="flex flex-wrap gap-2">
-                {service.tags.map((tag) => (
-                  <span
-                    key={tag}
-                    className="rounded-full border border-white/10 px-3 py-1 text-[11px] text-white/40 transition-colors duration-300 group-hover:text-white/60"
-                  >
-                    {tag}
-                  </span>
-                ))}
+                <div className="flex flex-wrap gap-2">
+                  {service.tags.map((tag) => (
+                    <span
+                      key={tag}
+                      className="rounded-full border border-white/10 px-3 py-1 text-[11px] text-white/40 transition-colors duration-300 group-hover:text-white/60"
+                    >
+                      {tag}
+                    </span>
+                  ))}
+                </div>
               </div>
-            </div>
-          </motion.div>
-        ))}
+            </motion.div>
+          ))}
         </motion.div>
       </div>
     </section>
