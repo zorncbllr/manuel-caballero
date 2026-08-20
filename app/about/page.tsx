@@ -1,7 +1,7 @@
 import Image from "next/image";
 import { ArrowUpRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import TeckStack from "../components/TeckStack";
+import TechStack from "../components/TechStack";
 
 function AboutPage() {
   return (
@@ -41,7 +41,7 @@ function AboutPage() {
 
               <hr />
 
-              <TeckStack />
+              <TechStack />
             </div>
           </div>
         </div>

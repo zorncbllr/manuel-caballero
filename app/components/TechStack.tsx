@@ -63,29 +63,39 @@ const TECH_STACK = [
   vector29,
 ];
 
-function TeckStack() {
+function TechStack({ hideLabel }: { hideLabel?: boolean | false }) {
   return (
     <div className="space-y-2">
-      <p className="font-medium">Tech Stack</p>
-      <div className="flex flex-wrap gap-2">
-        {TECH_STACK.map((src, index) => (
-          <div
-            key={index}
-            className="flex size-10 items-center justify-center rounded-lg border border-white/10 bg-white/5"
-          >
-            <Image
-              src={src}
-              alt="Tech stack logo"
-              width={32}
-              height={36}
-              unoptimized
-              className="size-6 object-contain invert"
-            />
-          </div>
-        ))}
+      {!hideLabel && <p className="font-medium">Tech Stack</p>}
+      <div className="relative overflow-hidden [mask-image:linear-gradient(to_right,transparent,black_10%,black_90%,transparent)]">
+        <div className="animate-marquee flex w-max gap-2">
+          {[0, 1].map((copy) => (
+            <div
+              key={copy}
+              aria-hidden={copy === 1}
+              className="flex shrink-0 gap-2"
+            >
+              {TECH_STACK.map((src, index) => (
+                <div
+                  key={index}
+                  className="flex size-10 items-center justify-center rounded-lg border border-white/10 bg-white/5"
+                >
+                  <Image
+                    src={src}
+                    alt="Tech stack logo"
+                    width={32}
+                    height={36}
+                    unoptimized
+                    className="size-6 object-contain invert"
+                  />
+                </div>
+              ))}
+            </div>
+          ))}
+        </div>
       </div>
     </div>
   );
 }
 
-export default TeckStack;
+export default TechStack;
