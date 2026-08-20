@@ -8,20 +8,36 @@ import {
   useTransform,
   useMotionValueEvent,
   useReducedMotion,
+  useMotionTemplate,
   type MotionValue,
 } from "motion/react";
 import SectionHeader from "./SectionHeader";
 
 const NODES = [
-  { label: "Data Entry", short: "Same numbers, same sheets — by hand." },
   {
-    label: "Invoicing & Billing",
-    short: "Chased, re-sent, reconciled by hand.",
+    label: "Architecture",
+    short: "I take requirements and design the right system.",
   },
-  { label: "Email Triage", short: "Same inbox, same answers — typed again." },
-  { label: "Reporting", short: "Rebuilt from scattered numbers." },
-  { label: "Scheduling", short: "Every call coordinated by hand." },
-  { label: "Follow-ups & Claims", short: "Loose ends chased every week." },
+  {
+    label: "Development",
+    short: "I take ideas and turn them into working products.",
+  },
+  {
+    label: "Integrations",
+    short: "I take systems and make them work together.",
+  },
+  {
+    label: "Automation",
+    short: "I take manual work and turn it into workflows.",
+  },
+  {
+    label: "AI Solutions",
+    short: "I take AI and turn it into useful features.",
+  },
+  {
+    label: "Optimization",
+    short: "I take working systems and make them better.",
+  },
 ];
 
 const SLOTS = [12, 26, 40, 54, 68, 82];
@@ -31,13 +47,61 @@ const BUS_Y = 50;
 const BUS_END = 90;
 
 const SCATTER = [
-  { x: 260, y: -110 },
-  { x: -160, y: 120 },
-  { x: 340, y: -70 },
-  { x: 60, y: 140 },
-  { x: 300, y: -130 },
-  { x: 580, y: -32 },
+  { x: 170, y: 0 },
+  { x: -150, y: 0 },
+  { x: 210, y: 0 },
+  { x: -180, y: 0 },
+  { x: 190, y: 0 },
+  { x: -230, y: 0 },
 ];
+
+const GATHER = [
+  { x: 260, y: 0 },
+  { x: -240, y: 0 },
+  { x: 320, y: 0 },
+  { x: -280, y: 0 },
+  { x: 300, y: 0 },
+  { x: -360, y: 0 },
+];
+
+const NODE_STEP = 0.10;
+const NODE_START = 0.02;
+const NODE_FADE = 0.026;
+const NODE_END = NODE_START + NODES.length * NODE_STEP;
+const MERGE_START = NODE_END;
+const MERGE_SETTLE = MERGE_START + 0.06;
+const LAST_NODE_START = NODE_START + (NODES.length - 1) * NODE_STEP;
+const STAGE_OFFSET = 96;
+
+const CAM_X_KEYS = [0, NODE_START, NODE_END, 0.72, 0.9, 0.97, 1];
+const CAM_X_VALS = [0.5, DOT_X / 100, DOT_X / 100, 0.5, 0.5, 0.9, 0.9];
+
+const CAM_SCALE_KEYS = [
+  0,
+  NODE_START,
+  NODE_START + 0.04,
+  LAST_NODE_START,
+  LAST_NODE_START + 0.04,
+  NODE_END,
+  0.72,
+  0.9,
+  0.97,
+  1,
+];
+const CAM_SCALE_VALS = [1, 1, 1.8, 1.8, 2.2, 2.2, 1, 1, 2, 2];
+
+const CAM_Y_KEYS: number[] = [0, NODE_START];
+const CAM_Y_VALS: number[] = [0.5, SLOTS[0] / 100];
+for (let i = 0; i < NODES.length; i++) {
+  const winStart = NODE_START + i * NODE_STEP;
+  CAM_Y_KEYS.push(winStart + NODE_STEP - NODE_FADE, winStart + NODE_STEP);
+  CAM_Y_VALS.push(
+    SLOTS[i] / 100,
+    SLOTS[Math.min(i + 1, NODES.length - 1)] / 100,
+  );
+}
+CAM_Y_KEYS.push(0.72, 0.9, 0.97, 1);
+CAM_Y_VALS.push(0.5, 0.5, 0.525, 0.525);
 
 function curveD(i: number) {
   const y = SLOTS[i];
@@ -55,16 +119,58 @@ function NodeItem({
   progress: MotionValue<number>;
   lit: boolean;
 }) {
-  const start = 0.02 + index * 0.065;
-  const enter = useTransform(progress, [start, start + 0.05], [0, 1]);
-  const opacity = enter;
-  const scale = useTransform(enter, [0, 1], [0.4, 1]);
+  const winStart = NODE_START + index * NODE_STEP;
+  const fadeIn = useTransform(progress, [winStart, winStart + NODE_FADE], [0, 1]);
+  const fadeOut = useTransform(
+    progress,
+    [winStart + NODE_STEP - NODE_FADE, winStart + NODE_STEP],
+    [0, 1],
+  );
+  const revive = useTransform(
+    progress,
+    [MERGE_START, MERGE_SETTLE],
+    [0, 1],
+  );
+  const env = useTransform(
+    [fadeIn, fadeOut],
+    ([a, b]: number[]) => a * (1 - b),
+  );
+  const opacity = useTransform(
+    [env, revive],
+    ([e, r]: number[]) => e + r - e * r,
+  );
+  const scale = useTransform(
+    progress,
+    [winStart, winStart + NODE_FADE],
+    [0.6, 1],
+  );
+
   const { x: sx, y: sy } = SCATTER[index];
+  const xEntry = useTransform(progress, [winStart, winStart + 0.036], [sx, 0]);
+  const yEntry = useTransform(progress, [winStart, winStart + 0.036], [sy, 0]);
 
-  const x = useTransform(progress, [0, 0.42, 0.52, 1], [sx, sx, 0, 0]);
-  const y = useTransform(progress, [0, 0.42, 0.52, 1], [sy, sy, 0, 0]);
+  const { x: gx, y: gy } = GATHER[index];
+  const xGather = useTransform(
+    progress,
+    [0, MERGE_START, MERGE_START + 0.01, MERGE_SETTLE + 0.08],
+    [0, 0, gx, 0],
+  );
+  const yGather = useTransform(
+    progress,
+    [0, MERGE_START, MERGE_START + 0.01, MERGE_SETTLE + 0.08],
+    [0, 0, gy, 0],
+  );
 
-return (
+  const x = useTransform(
+    [xEntry, xGather],
+    ([a, b]: number[]) => a + b,
+  );
+  const y = useTransform(
+    [yEntry, yGather],
+    ([a, b]: number[]) => a + b,
+  );
+
+  return (
     <>
       <motion.span
         style={{ opacity, scale, x, y, top: `${SLOTS[index]}%` }}
@@ -85,10 +191,14 @@ return (
       >
         <motion.div style={{ opacity, x, y }}>
           <div className="flex items-baseline gap-3">
-            <span className="font-mono text-xs text-white/30">0{index + 1}</span>
+            <span className="font-mono text-xs text-white/30">
+              0{index + 1}
+            </span>
             <h3 className="text-xl font-medium tracking-tight">{node.label}</h3>
           </div>
-          <p className="mt-1 text-sm leading-relaxed text-white/45">{node.short}</p>
+          <p className="mt-1 text-sm leading-relaxed text-white/45">
+            {node.short}
+          </p>
         </motion.div>
       </div>
     </>
@@ -103,8 +213,8 @@ function NodeCurve({
   progress: MotionValue<number>;
 }) {
   const d = curveD(index);
-  const start = 0.52 + index * 0.012;
-  const reveal = useTransform(progress, [start, start + 0.012], [0, 1]);
+  const start = MERGE_SETTLE + 0.1 + index * 0.018;
+  const reveal = useTransform(progress, [start, start + 0.018], [0, 1]);
   return (
     <>
       <path
@@ -135,9 +245,9 @@ function StoryCinematic({
     target,
     offset: ["start start", "end end"],
   }).scrollYProgress;
-  const p = useSpring(progress, { stiffness: 95, damping: 32, mass: 0.5 });
+  const p = useSpring(progress, { stiffness: 170, damping: 24, mass: 0.35 });
 
-  const [phase, setPhase] = useState<
+  const [, setPhase] = useState<
     "idle" | "nodes" | "connect" | "flow" | "merge"
   >("idle");
   const [activeIndex, setActiveIndex] = useState(0);
@@ -145,9 +255,11 @@ function StoryCinematic({
   useMotionValueEvent(p, "change", (v) => {
     if (v < 0.02) {
       setPhase("idle");
-    } else if (v < 0.4) {
+    } else if (v < NODE_END) {
       setPhase("nodes");
-      setActiveIndex(Math.min(5, Math.floor((v - 0.02) / 0.065)));
+      setActiveIndex(
+        Math.min(5, Math.floor((v - NODE_START) / NODE_STEP)),
+      );
     } else if (v < 0.8) {
       setPhase("connect");
       setActiveIndex(6);
@@ -157,19 +269,39 @@ function StoryCinematic({
     }
   });
 
-  const curveGroupOpacity = useTransform(p, [0.52, 0.54], [0, 1]);
-  const busReveal = useTransform(p, [0.6, 0.7], [0, 1]);
-  const plasmaOpacity = useTransform(p, [0.64, 0.72], [0, 1]);
-  const destOpacity = useTransform(p, [0.78, 0.86], [0, 1]);
-  const destScale = useTransform(p, [0.78, 0.86], [0.4, 1]);
+  const curveGroupOpacity = useTransform(p, [0.78, 0.8], [0, 1]);
+  const busReveal = useTransform(p, [0.82, 0.9], [0, 1]);
+  const plasmaOpacity = useTransform(p, [0.86, 0.94], [0, 1]);
+  const destOpacity = useTransform(p, [0.9, 0.98], [0, 1]);
+  const destScale = useTransform(p, [0.9, 0.98], [0.4, 1]);
+
+  const camScale = useTransform(p, CAM_SCALE_KEYS, CAM_SCALE_VALS);
+  const camX = useTransform(p, CAM_X_KEYS, CAM_X_VALS);
+  const camY = useTransform(p, CAM_Y_KEYS, CAM_Y_VALS);
+
+  const camTx = useTransform(camX, (v) => `${((0.5 - v) * 100).toFixed(2)}%`);
+  const camTyPct = useTransform(camY, (v) => ((0.5 - v) * 100).toFixed(2));
+  const camDrop = useTransform(
+    camScale,
+    (s) =>
+      (
+        (STAGE_OFFSET * Math.min(1, Math.max(0, (s - 1) / 0.8))) /
+        s
+      ).toFixed(2),
+  );
+  const cam = useMotionTemplate`scale(${camScale}) translate(${camTx}, calc(${camTyPct}% - ${camDrop}px))`;
 
   return (
-    <div className="sticky top-24 relative flex h-screen items-center justify-center overflow-hidden">
-      <div className="absolute inset-x-0 top-0 z-20 pt-6">
-        <SectionHeader index="01" label="The Problem" hint="6 tasks" />
+    <div className="sticky top-24 relative -mx-40 flex h-screen items-center justify-center overflow-hidden">
+      <div className="absolute inset-x-0 top-0 z-20 px-40 pt-6">
+        <SectionHeader index="01" label="What I Do" hint="6 tasks" />
       </div>
 
       <div className="relative w-full max-w-3xl h-[calc(100vh-13rem)] min-h-[26rem]">
+        <motion.div
+          style={{ transform: cam, transformOrigin: "50% 50%", willChange: "transform" }}
+          className="absolute inset-0"
+        >
         {/* curved connectors + horizontal merge line (behind nodes) */}
         <svg
           aria-hidden
@@ -278,14 +410,15 @@ function StoryCinematic({
         </motion.div>
         <motion.div
           style={{ opacity: destOpacity }}
-          className="absolute left-[90%] top-[58%] -translate-x-1/2 whitespace-nowrap"
+          className="absolute flex flex-col left-[92%] top-[55%] -translate-x-1/2 whitespace-nowrap"
         >
-          <span className="font-mono text-xs text-white/30">
-            {phase === "merge" ? "✓ " : ""}
+          <span className="text-center font-medium tracking-tight text-white">
+            Reliable, intelligent software
           </span>
-          <span className="text-base font-medium tracking-tight text-white">
-            One Automated Workflow
+          <span className="text-center font-medium tracking-tight text-white">
+            that solves real business problems.
           </span>
+        </motion.div>
         </motion.div>
       </div>
     </div>
@@ -332,14 +465,6 @@ function StoryList() {
           </div>
         </motion.li>
       ))}
-      <motion.li variants={row} className="flex gap-6 py-7">
-        <span className="font-mono text-xs text-white/30 pt-1">→</span>
-        <div>
-          <h3 className="text-xl font-medium tracking-tight text-white">
-            One Automated Workflow
-          </h3>
-        </div>
-      </motion.li>
     </motion.ol>
   );
 }
@@ -351,7 +476,7 @@ function WorkflowGraphic() {
   if (reduced) {
     return (
       <section className="hidden flex-col gap-10 lg:flex">
-        <SectionHeader index="01" label="The Problem" hint="6 tasks" />
+        <SectionHeader index="01" label="What I Do" hint="6 tasks" />
         <StoryList />
       </section>
     );
@@ -359,7 +484,7 @@ function WorkflowGraphic() {
 
   return (
     <section>
-      <div ref={scrollerRef} className="relative hidden h-[440vh] lg:block">
+      <div ref={scrollerRef} className="relative hidden h-[700vh] lg:block">
         <StoryCinematic target={scrollerRef} />
       </div>
       <div className="lg:hidden">

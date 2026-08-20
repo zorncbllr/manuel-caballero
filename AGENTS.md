@@ -6,4 +6,16 @@ This version has breaking changes — APIs, conventions, and file structure may 
 
 This block is written and re-added by `next dev` — verify at `node_modules/next/dist/server/lib/generate-agent-files.js`. Removing it from a diff only re-creates the uncommitted change; committing it with your work keeps the tree clean.
 
+# Project Context
+
+This is a Portfolio Website for Manuel Caballero, an AI Solutions Engineer.
+
 <!-- END:nextjs-agent-rules -->
+
+# Rules
+
+- Never use emojis and grid line patterns.
+- Never introduce foreign colors, should only use provided theme colors.
+- Always follow typography used in setup for texts.
+- Keep design mobile friendly and responsive.
+- Use tailwindcss for styling & gsap for animating.
