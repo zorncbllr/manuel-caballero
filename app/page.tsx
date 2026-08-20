@@ -4,6 +4,7 @@ import ServicesSection from "./components/ServicesSection";
 import ProcessSection from "./components/ProcessSection";
 import ProjectsSection from "./components/ProjectsSection";
 import CTASection from "./components/CTASection";
+import WorkflowGraphic from "./components/WorkflowGraphic";
 
 function HomePage() {
   return (
@@ -14,6 +15,7 @@ function HomePage() {
         </div>
 
         <div className="mt-40 space-y-40">
+          <WorkflowGraphic />
           <ServicesSection />
           <ProcessSection />
           <ProjectsSection />

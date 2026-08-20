@@ -69,6 +69,61 @@ canvas.matrix-canvas {
   --animate-marquee: marquee 28s linear infinite;
   --animate-star-movement-bottom: star-movement-bottom linear infinite alternate;
   --animate-star-movement-top: star-movement-top linear infinite alternate;
+  --animate-plasma-drift: plasma-drift 6s ease-in-out infinite;
+  --animate-orb-travel: orb-travel 2.6s linear infinite;
+  --animate-orb-travel-slow: orb-travel 3.6s linear infinite;
+  --animate-orb-x: orb-x 2.8s linear infinite;
+  --animate-seg-flow: seg-flow 1.6s ease-in-out infinite;
+
+  @keyframes orb-x {
+    0% {
+      left: 0%;
+      opacity: 0;
+    }
+    12%,
+    88% {
+      opacity: 1;
+    }
+    100% {
+      left: 100%;
+      opacity: 0;
+    }
+  }
+
+  @keyframes seg-flow {
+    0%,
+    100% {
+      opacity: 0.12;
+    }
+    50% {
+      opacity: 1;
+    }
+  }
+
+  @keyframes plasma-drift {
+    0%,
+    100% {
+      background-position: 50% 0%;
+    }
+    50% {
+      background-position: 50% 100%;
+    }
+  }
+
+  @keyframes orb-travel {
+    0% {
+      top: 0%;
+      opacity: 0;
+    }
+    10%,
+    90% {
+      opacity: 1;
+    }
+    100% {
+      top: 100%;
+      opacity: 0;
+    }
+  }
 
   @keyframes radar {
     from {
@@ -234,6 +289,11 @@ body {
   );
 }
 
+.plasma-gradient {
+  background-image: linear-gradient(to bottom, #22d3ee, #a78bfa, #f472b6);
+  background-size: 100% 300%;
+}
+
 @media (prefers-reduced-motion: reduce) {
   .animate-flow,
   .animate-pulse-dot,
@@ -248,7 +308,12 @@ body {
   .animate-receipt-scroll,
   .animate-marquee,
   .animate-star-movement-bottom,
-  .animate-star-movement-top {
+  .animate-star-movement-top,
+  .animate-plasma-drift,
+  .animate-orb-travel,
+  .animate-orb-travel-slow,
+  .animate-orb-x,
+  .animate-seg-flow {
     animation: none;
   }
 }
