@@ -160,12 +160,27 @@ const MatrixAnimation = ({
     let prevCursorY = cursorY;
     let cursorStrength = 0;
     let hasMoved = false;
+    // Raw pointer travel accumulated from mousemove events since the last
+    // frame. This is the honest speed signal: the smoothed cursor trails the
+    // pointer, so measuring its travel would throttle fast flicks down to a
+    // crawl and make the very first pass feel inert.
+    let eventDist = 0;
+    let lastEventX: number | null = null;
+    let lastEventY: number | null = null;
+    let speedSmooth = 0;
 
     const handleMove = (e: MouseEvent) => {
       const rect = canvas.getBoundingClientRect();
       if (rect.width === 0 || rect.height === 0) return;
-      targetX = (e.clientX - rect.left) * (width / rect.width);
-      targetY = (e.clientY - rect.top) * (height / rect.height);
+      const px = (e.clientX - rect.left) * (width / rect.width);
+      const py = (e.clientY - rect.top) * (height / rect.height);
+      if (lastEventX !== null && lastEventY !== null) {
+        eventDist += Math.hypot(px - lastEventX, py - lastEventY);
+      }
+      lastEventX = px;
+      lastEventY = py;
+      targetX = px;
+      targetY = py;
       cursorStrength = 1;
       // First interaction: snap the smoothed cursor to the pointer instead of
       // lerping from the off-canvas start position, otherwise the effect only
@@ -182,6 +197,9 @@ const MatrixAnimation = ({
     const handleLeave = () => {
       targetX = null;
       targetY = null;
+      // Reset raw tracking so re-entry elsewhere doesn't teleport the wake.
+      lastEventX = null;
+      lastEventY = null;
     };
 
     canvas.addEventListener("mousemove", handleMove);
@@ -233,10 +251,16 @@ const MatrixAnimation = ({
     };
 
     const animate = (time: number) => {
-      // 0. Advance smoothed cursor toward the target, decay presence over time
+      // 0. Raw speed first, then advance the smoothed cursor toward the target.
+      // The chase factor scales with speed so the vortex clings to fast flicks
+      // instead of lagging several frames behind them.
+      const frameSpeed = Math.min(2.5, eventDist / 60);
+      eventDist = 0;
+      speedSmooth = Math.max(frameSpeed, speedSmooth * 0.82);
       if (targetX !== null && targetY !== null) {
-        cursorX += (targetX - cursorX) * 0.15;
-        cursorY += (targetY - cursorY) * 0.15;
+        const lerp = 0.15 + 0.45 * Math.min(1, speedSmooth);
+        cursorX += (targetX - cursorX) * lerp;
+        cursorY += (targetY - cursorY) * lerp;
       }
       cursorStrength *= 0.96;
 
@@ -261,15 +285,20 @@ const MatrixAnimation = ({
       // forces spin the sampling around the pointer while a direct jolt pushes
       // it immediately, so even a slow hover churns like rubbing silk.
       const dist = Math.hypot(cursorX - prevCursorX, cursorY - prevCursorY);
-      const speed = Math.min(1, dist / 120);
+      const rawDist = Math.min(dist, 600);
+      // Speed comes from raw pointer travel (speedSmooth), NOT from the
+      // smoothed cursor's per-frame movement — the chase lag would otherwise
+      // disguise fast motion as slow.
+      const speed = speedSmooth;
       const dirX = dist > 1e-3 ? (cursorX - prevCursorX) / dist : 0;
       const dirY = dist > 1e-3 ? (cursorY - prevCursorY) / dist : 0;
       const locality = 56 / distortionRadius;
-      const spinForce = (0.5 + 0.9 * speed) * distortionIntensity * cursorStrength * locality;
-      const directForce = spinForce * 0.4;
-      const wakeForce = speed * speed * distortionIntensity * cursorStrength * 2.0 * locality;
-      const steps = Math.min(Math.max(1, Math.round(dist / (spacing * 0.5))), 32);
-      const radiusCells = Math.max(1, Math.round(distortionRadius / spacing));
+      const spinForce = (0.35 + speed * speed) * distortionIntensity * cursorStrength * locality;
+      const directForce = spinForce * (0.4 + 0.25 * Math.min(1, speed));
+      const wakeForce = speed * speed * distortionIntensity * cursorStrength * 1.4 * locality;
+      const steps = Math.min(Math.max(1, Math.round(rawDist / (spacing * 0.5))), 32);
+      // Fast passes sweep a wider vortex so hard flicks carve bigger eddies.
+      const radiusCells = Math.max(1, Math.round((distortionRadius + rawDist * 0.25) / spacing));
       const invRadiusSq = 1 / (distortionRadius * distortionRadius);
       if (cursorStrength > 0.02) {
         for (let s = 0; s <= steps; s++) {
@@ -339,10 +368,12 @@ const MatrixAnimation = ({
       // 5. Advect the sample offsets with the velocity, then diffuse them so the
       // warp field stays spatially smooth — this is what makes the stirring
       // read as fluid instead of flickery.
-      const maxOffset = 8;
+      // Higher ceiling on both velocity and offsets so the speed-scaled stir
+      // can actually express itself instead of clipping at the old limits.
+      const maxOffset = 12;
       for (let i = 0; i < total; i++) {
-        let vx = velX[i] > 5 ? 5 : velX[i] < -5 ? -5 : velX[i];
-        let vy = velY[i] > 5 ? 5 : velY[i] < -5 ? -5 : velY[i];
+        let vx = velX[i] > 8 ? 8 : velX[i] < -8 ? -8 : velX[i];
+        let vy = velY[i] > 8 ? 8 : velY[i] < -8 ? -8 : velY[i];
         let dx = offX[i] + vx * 0.35;
         let dy = offY[i] + vy * 0.35;
         dx = dx > maxOffset ? maxOffset : dx < -maxOffset ? -maxOffset : dx;

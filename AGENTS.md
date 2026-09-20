@@ -19,3 +19,6 @@ This is a Portfolio Website for Manuel Caballero, an AI Solutions Engineer.
 - Always follow typography used in setup for texts.
 - Keep design mobile friendly and responsive.
 - Use tailwindcss for styling & gsap for animating.
+- Always consider mobile and small screen devices responsiveness design.
+- Never use generic ai designs, but keep framer websites design inspiration.
+- Always go for elegant, modern design.
