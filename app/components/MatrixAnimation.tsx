@@ -49,8 +49,8 @@ const MatrixAnimation = ({
   dotSize = 2,
   contrast = 1.8,
   scale = 1,
-  distortionIntensity = 3.5,
-  distortionRadius = 32,
+  distortionIntensity = 10,
+  distortionRadius = 80,
   edgeFade = 160,
 }) => {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
@@ -264,10 +264,10 @@ const MatrixAnimation = ({
       const speed = Math.min(1, dist / 120);
       const dirX = dist > 1e-3 ? (cursorX - prevCursorX) / dist : 0;
       const dirY = dist > 1e-3 ? (cursorY - prevCursorY) / dist : 0;
-      const locality = 32 / distortionRadius;
-      const spinForce = (0.35 + 0.65 * speed) * distortionIntensity * cursorStrength * locality;
-      const directForce = spinForce * 0.22;
-      const wakeForce = speed * speed * distortionIntensity * cursorStrength * 1.2 * locality;
+      const locality = 56 / distortionRadius;
+      const spinForce = (0.5 + 0.9 * speed) * distortionIntensity * cursorStrength * locality;
+      const directForce = spinForce * 0.4;
+      const wakeForce = speed * speed * distortionIntensity * cursorStrength * 2.0 * locality;
       const steps = Math.min(Math.max(1, Math.round(dist / (spacing * 0.5))), 32);
       const radiusCells = Math.max(1, Math.round(distortionRadius / spacing));
       const invRadiusSq = 1 / (distortionRadius * distortionRadius);
@@ -296,8 +296,8 @@ const MatrixAnimation = ({
               const spin = Math.sin(shimmerPhase + Math.sqrt(d2) * 0.03);
               velX[idx] += -cellDy * invD * env * spinForce * (0.6 + spin * 0.4);
               velY[idx] += cellDx * invD * env * spinForce * (0.6 + spin * 0.4);
-              // Direct churn: kick the sampling immediately so the response
-              // feels instant, not laggy.
+              // Direct churn: kick the brightness sampling immediately so the
+              // response feels instant, not laggy.
               offX[idx] -= cellDy * invD * env * directForce;
               offY[idx] += cellDx * invD * env * directForce;
               // Directional wake: pull samples against the motion so a fast
@@ -339,7 +339,7 @@ const MatrixAnimation = ({
       // 5. Advect the sample offsets with the velocity, then diffuse them so the
       // warp field stays spatially smooth — this is what makes the stirring
       // read as fluid instead of flickery.
-      const maxOffset = 5;
+      const maxOffset = 8;
       for (let i = 0; i < total; i++) {
         let vx = velX[i] > 5 ? 5 : velX[i] < -5 ? -5 : velX[i];
         let vy = velY[i] > 5 ? 5 : velY[i] < -5 ? -5 : velY[i];
