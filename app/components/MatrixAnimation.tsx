@@ -136,10 +136,11 @@ const MatrixAnimation = ({
     }
 
     // Per-dot current wave value, plus a tiny interactive fluid field.
-    // `velX/velY` is a per-cell velocity field the cursor stirs with vortex
-    // forces; `offX/offY` is how far (in cells) the dot's color sample is
-    // warped from its home spot. The dots stay planted — it's the brightness
-    // pattern that gets bent and swirled around the cursor like stirred smoke.
+    // `velX/velY` is a per-cell velocity field the cursor displaces like a
+    // hull pushing through water; `offX/offY` is how far (in cells) the dot's
+    // color sample is warped from its home spot. The dots stay planted — it's
+    // the brightness pattern that gets dragged into a directional wake that
+    // points along the cursor's heading, like a boat trail.
     const field = new Float32Array(total);
     const velX = new Float32Array(total);
     const velY = new Float32Array(total);
@@ -168,6 +169,10 @@ const MatrixAnimation = ({
     let lastEventX: number | null = null;
     let lastEventY: number | null = null;
     let speedSmooth = 0;
+    // Persisted heading so a momentary hover still leaves the wake pointing
+    // the way the cursor was last traveling.
+    let lastDirX = 1;
+    let lastDirY = 0;
 
     const handleMove = (e: MouseEvent) => {
       const rect = canvas.getBoundingClientRect();
@@ -252,7 +257,7 @@ const MatrixAnimation = ({
 
     const animate = (time: number) => {
       // 0. Raw speed first, then advance the smoothed cursor toward the target.
-      // The chase factor scales with speed so the vortex clings to fast flicks
+      // The chase factor scales with speed so the wake clings to fast flicks
       // instead of lagging several frames behind them.
       const frameSpeed = Math.min(2.5, eventDist / 60);
       eventDist = 0;
@@ -281,25 +286,41 @@ const MatrixAnimation = ({
         velY[i] *= 0.99;
       }
 
-      // 3. Stir: a tight vortex that clings to the cursor. Localized tangential
-      // forces spin the sampling around the pointer while a direct jolt pushes
-      // it immediately, so even a slow hover churns like rubbing silk.
+      // 3. Boat-wake stir: the cursor is the hull, the sampling field is the
+      // water. The disturbance is an envelope elongated along the heading —
+      // a short bow wave in front, a long trailing wake behind — with an
+      // outward V-spread perpendicular to travel. Only a faint curl remains
+      // for shimmer, so the wake points where the cursor is heading instead
+      // of ringing in circles around it.
       const dist = Math.hypot(cursorX - prevCursorX, cursorY - prevCursorY);
       const rawDist = Math.min(dist, 600);
       // Speed comes from raw pointer travel (speedSmooth), NOT from the
       // smoothed cursor's per-frame movement — the chase lag would otherwise
       // disguise fast motion as slow.
       const speed = speedSmooth;
-      const dirX = dist > 1e-3 ? (cursorX - prevCursorX) / dist : 0;
-      const dirY = dist > 1e-3 ? (cursorY - prevCursorY) / dist : 0;
+      if (dist > 1e-3) {
+        lastDirX = (cursorX - prevCursorX) / dist;
+        lastDirY = (cursorY - prevCursorY) / dist;
+      }
+      const dirX = lastDirX;
+      const dirY = lastDirY;
+      const moving = dist > 0.5;
       const locality = 56 / distortionRadius;
-      const spinForce = (0.35 + speed * speed) * distortionIntensity * cursorStrength * locality;
-      const directForce = spinForce * (0.4 + 0.25 * Math.min(1, speed));
-      const wakeForce = speed * speed * distortionIntensity * cursorStrength * 1.4 * locality;
+      const base = distortionIntensity * cursorStrength * locality;
+      const spinForce = (0.1 + speed * speed * 0.45) * base;
+      const wakeForce =
+        (0.6 + speed * 2.2) * base * (moving ? 1 : 0.25);
       const steps = Math.min(Math.max(1, Math.round(rawDist / (spacing * 0.5))), 32);
-      // Fast passes sweep a wider vortex so hard flicks carve bigger eddies.
-      const radiusCells = Math.max(1, Math.round((distortionRadius + rawDist * 0.25) / spacing));
-      const invRadiusSq = 1 / (distortionRadius * distortionRadius);
+      // Fast passes sweep a wider wake so hard flicks carve bigger trails.
+      const radiusCells = Math.max(
+        1,
+        Math.round(((distortionRadius + rawDist * 0.25) * 1.4) / spacing),
+      );
+      const R = radiusCells * spacing;
+      // Sharper bow point ahead of the climax; the tail fades well inside
+      // the sweep radius so the V fans out fully before truncating.
+      const invAheadSq = 1 / ((R * 0.3) * (R * 0.3));
+      const invTailSq = 1 / ((R * 0.85) * (R * 0.85));
       if (cursorStrength > 0.02) {
         for (let s = 0; s <= steps; s++) {
           const px = prevCursorX + ((cursorX - prevCursorX) * s) / steps;
@@ -316,23 +337,55 @@ const MatrixAnimation = ({
               const cellDx = dc * spacing;
               const cellDy = dr * spacing;
               const d2 = cellDx * cellDx + cellDy * cellDy;
-              const env = Math.exp(-d2 * invRadiusSq);
+              // Split the offset into a component along the heading and one
+              // perpendicular to it. The climax sits directly under the
+              // cursor and is the narrowest point; the trail fans out into a
+              // widening V the further it recedes behind.
+              const along = cellDx * dirX + cellDy * dirY;
+              const perpX = cellDx - along * dirX;
+              const perpY = cellDy - along * dirY;
+              const perp2 = perpX * perpX + perpY * perpY;
+              const behind = along < 0 ? -along : 0;
+              const ahead = along > 0 ? along : 0;
+              // Wake half-width grows linearly with depth behind the cursor:
+              // pinched at the climax, fanned at the tail.
+              const width =
+                R * (0.22 + 0.58 * Math.min(1, behind / (R * 1.0)));
+              const invWidthSq = 1 / (width * width);
+              const env = Math.exp(
+                -(
+                  perp2 * invWidthSq +
+                  behind * behind * invTailSq +
+                  ahead * ahead * invAheadSq
+                ),
+              );
               if (env < 0.005) continue;
               const idx = rowBase + pcol;
-              // Tangential force → dots curl around the cursor. The spin
-              // wobbles smoothly with distance so the vortex stays coherent.
+              // V-spread: wake cells get pushed outward on their own side of
+              // the path, widening with depth behind the cursor.
+              const depth = Math.min(1, behind / (R * 1.0));
+              const push = env * wakeForce * (0.3 + depth * 0.7);
+              const sideSgn =
+                perpX * -dirY + perpY * dirX > 0 ? 1 : -1;
+              const spreadX = -dirY * sideSgn;
+              const spreadY = dirX * sideSgn;
+              offX[idx] += spreadX * push;
+              offY[idx] += spreadY * push;
+              velX[idx] += spreadX * push * 0.3;
+              velY[idx] += spreadY * push * 0.3;
+              // Backdrag: samples trail opposite the heading, elongating the
+              // smear behind the boat.
+              const drag = env * wakeForce * 0.45;
+              offX[idx] -= dirX * drag;
+              offY[idx] -= dirY * drag;
+              velX[idx] -= dirX * drag * 0.3;
+              velY[idx] -= dirY * drag * 0.3;
+              // Faint tangential curl so the surface shimmers instead of
+              // reading as a rigid stripe.
               const invD = 1 / (Math.sqrt(d2) + 1e-6);
               const spin = Math.sin(shimmerPhase + Math.sqrt(d2) * 0.03);
               velX[idx] += -cellDy * invD * env * spinForce * (0.6 + spin * 0.4);
               velY[idx] += cellDx * invD * env * spinForce * (0.6 + spin * 0.4);
-              // Direct churn: kick the brightness sampling immediately so the
-              // response feels instant, not laggy.
-              offX[idx] -= cellDy * invD * env * directForce;
-              offY[idx] += cellDx * invD * env * directForce;
-              // Directional wake: pull samples against the motion so a fast
-              // left→right pass drags a colored smear behind it.
-              offX[idx] -= dirX * env * wakeForce;
-              offY[idx] -= dirY * env * wakeForce;
             }
           }
         }
